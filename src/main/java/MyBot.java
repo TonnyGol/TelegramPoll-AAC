@@ -216,25 +216,45 @@ public class MyBot extends TelegramLongPollingBot {
 
     private void sendSurveyResultsToCreator() {
         StringBuilder results = new StringBuilder("Survey Results:\n");
+
         for (Map.Entry<String, List<String>> entry : surveyQuestions.entrySet()) {
             String question = entry.getKey();
             List<String> options = entry.getValue();
-            results.append(question).append("\n");
+            results.append("Q: ").append(question).append("\n");
 
+            // Map to store the count of votes for each option
             Map<String, Integer> answerCounts = new HashMap<>();
+            int totalResponses = 0;
+
+            // Count the votes for each option
             for (Map<String, String> responses : surveyResponses.values()) {
                 String answer = responses.get(question);
                 if (answer != null) {
                     answerCounts.put(answer, answerCounts.getOrDefault(answer, 0) + 1);
+                    totalResponses++;
                 }
             }
 
-            answerCounts.entrySet().stream()
-                    .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
-                    .forEach(e -> results.append("Question - ").append(e.getKey()).append(":  voted - ").append(e.getValue()).append("\n"));
+            // Calculate percentages and sort by the highest percentage
+            List<Map.Entry<String, Integer>> sortedEntries = new ArrayList<>(answerCounts.entrySet());
+            int finalTotalResponses = totalResponses;
+            sortedEntries.sort((e1, e2) -> Double.compare(
+                    (double) e2.getValue() / finalTotalResponses,
+                    (double) e1.getValue() / finalTotalResponses)
+            );
+
+            // Append each option with its percentage to the results
+            for (Map.Entry<String, Integer> e : sortedEntries) {
+                double percentage = totalResponses > 0 ? (e.getValue() * 100.0) / totalResponses : 0.0;
+                results.append(String.format("Answer: (%s): voted %.2f%%\n", e.getKey(), percentage));
+            }
+
+            results.append("\n"); // Add a line break between questions
         }
 
+        // Send the results to the survey creator
         sendMessage(surveyCreatorId, results.toString());
+        surveyResponses.clear();
     }
 
     @Override
@@ -244,7 +264,7 @@ public class MyBot extends TelegramLongPollingBot {
 
     @Override
     public String getBotToken() {
-        return "YOUR TOKEN HERE";
+        return "YOUR BOT TOKEN HERE";
     }
 
     private void sendMessage(long chatId, String text) {
