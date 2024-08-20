@@ -382,11 +382,9 @@ public class MyBot extends TelegramLongPollingBot {
             List<String> options = entry.getValue();
             results.append("Q: ").append(question).append("\n");
 
-            // Map to store the count of votes for each option
             Map<String, Integer> answerCounts = new HashMap<>();
             int totalResponses = surveyResponses.size();
 
-            // Count the votes for each option
             for (Map<String, String> responses : surveyResponses.values()) {
                 String answer = responses.get(question);
                 if (answer != null) {
@@ -394,7 +392,6 @@ public class MyBot extends TelegramLongPollingBot {
                 }
             }
 
-            // Calculate percentages for each option
             List<Map.Entry<String, Double>> sortedEntries = new ArrayList<>();
             for (String option : options) {
                 int voteCount = answerCounts.getOrDefault(option, 0);
@@ -405,17 +402,12 @@ public class MyBot extends TelegramLongPollingBot {
             // Sort the options by percentage in descending order
             sortedEntries.sort((e1, e2) -> Double.compare(e2.getValue(), e1.getValue()));
 
-            // Append each option with its percentage to the results
             for (Map.Entry<String, Double> entry1 : sortedEntries) {
                 results.append(String.format("Answer: (%s): voted %.2f%%\n", entry1.getKey(), entry1.getValue()));
             }
 
-            results.append("\n"); // Add a line break between questions
+            results.append("\n");
         }
-
-        // Send the results to the survey creator
-        sendMessage(surveyCreatorId, results.toString());
-        surveyResponses.clear();
     }
 
 
