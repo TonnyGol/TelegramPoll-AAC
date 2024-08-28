@@ -407,6 +407,8 @@ public class MyBot extends TelegramLongPollingBot {
             }
 
             results.append("\n");
+            sendMessage(surveyCreatorId, results.toString());
+            surveyResponses.clear();
         }
     }
 
